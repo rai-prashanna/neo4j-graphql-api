@@ -9,6 +9,23 @@ const NEO4J_USERNAME = process.env.NEO4J_USERNAME;
 const NEO4J_PASSWORD = process.env.NEO4J_PASSWORD;
 
 const typeDefs = /* GraphQL */ `
+
+type Query {
+    findBusinessWithCustomEndpoint: Business
+      @cypher(
+        statement: """
+        MATCH (u:User)-[:WROTE]->(r:Review)-[:REVIEWS]->(b:Business) RETURN b
+        """
+      )
+
+      findBusinessWithCustomEndpointParameters(farmName: String): Farm
+      @cypher(
+        statement: """
+        match(f:Farm { name: $farmName }) return f
+        """
+      )
+  }
+
 type ActedInProperties @relationshipProperties {
 	roles: [String]!
 }
