@@ -1,6 +1,6 @@
-const { ApolloServer } = require("apollo-server");
-const neo4j = require("neo4j-driver");
-const { Neo4jGraphQL } = require("@neo4j/graphql");
+import { ApolloServer } from "apollo-server";
+import neo4j from "neo4j-driver";
+import { Neo4jGraphQL } from "@neo4j/graphql";
 
 const resolvers = {
   Business: {
@@ -94,4 +94,6 @@ neoSchema.getSchema().then((schema) => {
   server.listen().then(({ url }) => {
     console.log(`GraphQL server ready at ${url}`);
   });
+}).catch((error) => {
+  console.log("Error:", error);
 });
