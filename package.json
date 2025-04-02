@@ -1,23 +1,37 @@
 {
-  "name": "neo4j-graphql",
+  "name": "neo4j-graphql-api",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "type": "module",
-  "dependencies": {
-    "@neo4j/graphql": "^3.14.2",
-    "@neo4j/introspector": "^1.0.1",
-    "apollo-server": "^3.6.7",
-    "graphql": "^16.3.0",
-    "neo4j-driver": "^4.4.5"
+  "license": "AGPL-version-3.0",
+  "private": false,
+  "engines": {
+    "node": ">= 14.0.0",
+    "npm": ">= 6.0.0"
   },
-  "scripts": {
-    "start": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
   },
+  "bugs": "",
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "author": {
+    "name": "P",
+    "email": "",
+    "url": ""
+  },
+  "contributors": [],
+  "scripts": {
+    "dev": "nodemon index.js",
+    "test": ""
+  },
+  "dependencies": {
+    "@apollo/server": "^4.11.3",
+    "@neo4j/graphql": "^6.6.0",
+    "@neo4j/introspector": "^4.0.1",
+    "graphql": "^16.10.0",
+    "neo4j-driver": "^5.28.1"
+  }
 }
-
-
