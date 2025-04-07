@@ -27,7 +27,7 @@ async function main() {
     const typeDefs = await toGraphQLTypeDefs(sessionFactory, readonly);
 
     const neoSchema = new Neo4jGraphQL({ typeDefs, driver });
-
+    console.log("Schema is generated");
     const server = new ApolloServer({
         schema: await neoSchema.getSchema(),
     });
@@ -41,6 +41,7 @@ startStandaloneServer(server, {
                 req.headers.authorization.slice(7),
                 JWT_KEY
               );
+              console.log("Successfully decoded JWT token:", decoded);
             } catch (e) {
               // token not valid
               console.log(e);
