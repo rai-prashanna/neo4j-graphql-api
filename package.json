@@ -18,22 +18,26 @@
   "bugs": "",
   "keywords": [],
   "author": {
-    "name": "P",
-    "email": "",
-    "url": ""
+    "name": "Prashanna Rai",
+    "email": "prai931024@gmail.com",
+    "url": "https://rai-prashanna.github.io/"
   },
   "contributors": [],
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon index.js",
     "test": ""
   },
   "dependencies": {
     "@apollo/server": "^4.11.3",
     "@neo4j/graphql": "^6.6.0",
+    "@neo4j/graphql-plugin-auth": "^2.2.0",
     "@neo4j/introspector": "^4.0.1",
     "dotenv": "^16.4.7",
     "graphql": "^16.10.0",
+    "graphql-tag": "^2.12.6",
     "jsonwebtoken": "^9.0.2",
-    "neo4j-driver": "^5.28.1"
+    "neo4j-driver": "^5.28.1",
+    "path": "^0.12.7"
   }
 }

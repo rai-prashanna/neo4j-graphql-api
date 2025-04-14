@@ -1,11 +1,13 @@
-type ActedInProperties @relationshipProperties {
-	roles: [String]!
-}
 
-type Business @node {
-	name: String!
-	reviewsReviews: [Review!]! @relationship(type: "REVIEWS", direction: IN)
-}
+type Query {
+findBusinessWithCustomEndpointParameters(farmName: String): Farm
+      @cypher(
+        statement: """
+        match(f:Farm { name: $farmName }) return f
+        """,
+        columnName: "f"
+      )
+  }
 
 type Component @node {
 	componentshasSubComponent: [Component!]! @relationship(type: "has_sub_component", direction: IN)
@@ -28,6 +30,13 @@ type ComponentBlueprint @node {
 	label: String!
 }
 
+type DeLavalSubscription @node {
+	expiry_date: Date!
+	farmsholdsSubscription: [Farm!]! @relationship(type: "holds_subscription", direction: IN)
+	license_number: BigInt!
+	type: String!
+}
+
 type Device @node {
 	containsBluePrintComponentBlueprints: [ComponentBlueprint!]! @relationship(type: "contains_blue_print", direction: OUT)
 	farmshasDevice: [Farm!]! @relationship(type: "has_device", direction: IN)
@@ -47,8 +56,9 @@ type DeviceType @node {
 
 type Farm @node {
 	hasDeviceDevices: [Device!]! @relationship(type: "has_device", direction: OUT)
-	holdsSubscriptionSubscriptions: [Subscription!]! @relationship(type: "holds_subscription", direction: OUT)
+	holdsSubscriptionDeLavalSubscriptions: [DeLavalSubscription!]! @relationship(type: "holds_subscription", direction: OUT)
 	name: String!
+	region: String!
 }
 
 type Hotspot @node {
@@ -62,51 +72,4 @@ type Hotspot @node {
 type Image @node {
 	hotspotsmarksLocationIn: [Hotspot!]! @relationship(type: "marks_location_in", direction: IN)
 	path: String!
-}
-
-type Movie @node {
-	peopleActedIn: [Person!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedInProperties")
-	peopleDirected: [Person!]! @relationship(type: "DIRECTED", direction: IN)
-	peopleProduced: [Person!]! @relationship(type: "PRODUCED", direction: IN)
-	peopleReviewed: [Person!]! @relationship(type: "REVIEWED", direction: IN, properties: "ReviewedProperties")
-	peopleWrote: [Person!]! @relationship(type: "WROTE", direction: IN)
-	released: BigInt!
-	tagline: String
-	title: String!
-}
-
-type Person @node {
-	actedInMovies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedInProperties")
-	born: BigInt
-	directedMovies: [Movie!]! @relationship(type: "DIRECTED", direction: OUT)
-	followsPeople: [Person!]! @relationship(type: "FOLLOWS", direction: OUT)
-	name: String!
-	peopleFollows: [Person!]! @relationship(type: "FOLLOWS", direction: IN)
-	producedMovies: [Movie!]! @relationship(type: "PRODUCED", direction: OUT)
-	reviewedMovies: [Movie!]! @relationship(type: "REVIEWED", direction: OUT, properties: "ReviewedProperties")
-	wroteMovies: [Movie!]! @relationship(type: "WROTE", direction: OUT)
-}
-
-type Review @node {
-	reviewsBusinesses: [Business!]! @relationship(type: "REVIEWS", direction: OUT)
-	stars: BigInt!
-	text: String!
-	usersWrote: [User!]! @relationship(type: "WROTE", direction: IN)
-}
-
-type ReviewedProperties @relationshipProperties {
-	rating: BigInt!
-	summary: String!
-}
-
-type Subscription @node {
-	expiry_date: Date!
-	farmsholdsSubscription: [Farm!]! @relationship(type: "holds_subscription", direction: IN)
-	license_number: BigInt!
-	type: String!
-}
-
-type User @node {
-	name: String!
-	wroteReviews: [Review!]! @relationship(type: "WROTE", direction: OUT)
 }

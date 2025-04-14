@@ -1,24 +1,3 @@
-import { ApolloServer } from "@apollo/server";
-import neo4j from "neo4j-driver";
-import { Neo4jGraphQL } from "@neo4j/graphql";
-import { startStandaloneServer } from '@apollo/server/standalone';
-
-const NEO4J_HOST = process.env.NEO4J_HOST;
-const NEO4J_PORT = process.env.NEO4J_PORT;
-const NEO4J_USERNAME = process.env.NEO4J_USERNAME;
-const NEO4J_PASSWORD = process.env.NEO4J_PASSWORD;
-
-const typeDefs = /* GraphQL */ `
-
-type Query {
-      findBusinessWithCustomEndpointParameters(farmName: String): Farm
-      @cypher(
-        statement: """
-        match(f:Farm { name: $farmName }) return f
-        """
-      )
-  }
-
 type ActedInProperties @relationshipProperties {
 	roles: [String]!
 }
@@ -68,6 +47,7 @@ type DeviceType @node {
 
 type Farm @node {
 	hasDeviceDevices: [Device!]! @relationship(type: "has_device", direction: OUT)
+	holdsSubscriptionSubscriptions: [Subscription!]! @relationship(type: "holds_subscription", direction: OUT)
 	name: String!
 }
 
@@ -119,38 +99,85 @@ type ReviewedProperties @relationshipProperties {
 	summary: String!
 }
 
-
+type Subscription @node {
+	expiry_date: Date!
+	farmsholdsSubscription: [Farm!]! @relationship(type: "holds_subscription", direction: IN)
+	license_number: BigInt!
+	type: String!
+}
 
 type User @node {
 	name: String!
 	wroteReviews: [Review!]! @relationship(type: "WROTE", direction: OUT)
 }
 
+type Query {
+    findBusinessWithCustomEndpoint: Business
+      @cypher(
+        statement: """
+        MATCH (u:User)-[:WROTE]->(r:Review)-[:REVIEWS]->(b:Business) RETURN b
+        """
+      )
 
-`;
+      findBusinessWithCustomEndpointParameters(farmName: String): Farm
+      @cypher(
+        statement: """
+        match(f:Farm { name: $farmName }) return f
+        """
+      )
 
-const driver = neo4j.driver(
-  `bolt://${NEO4J_HOST}:${NEO4J_PORT}`,
-  neo4j.auth.basic(NEO4J_USERNAME, NEO4J_PASSWORD)
-);
+	findUnservicedDevicesOrComponents(hardwareVersion: Int,subscriptionType: String,deviceType: String,serviceDate: Date): Farm
+      @cypher(statement: """
+MATCH (f:Farm)-[:holds_subscription]->(s:Subscription {type: $subscriptionType})
+USING INDEX s:Subscription(type)
+WITH f 
+MATCH (f)-[:has_device]->(d:Device)-[:has_device_type]->(dt:DeviceType {name: $deviceType})
+USING INDEX dt:DeviceType(name)
+USING INDEX d:Device(hardware_version)  
+WHERE d.hardware_version > $hardwareVersion
+OPTIONAL MATCH (d)-[:has_component]->(component:Component)-[:has_sub_component*1..9]->(subComponent:Component)
+WHERE d.serviced_at < date($serviceDate) OR component.serviced_at < date($serviceDate) OR subComponent.serviced_at < date($serviceDate)
+RETURN d AS devices,component AS components, subComponent AS subComponents;
+        """
+      )
+  }
 
-const neoSchema = new Neo4jGraphQL({ typeDefs, driver });
 
-neoSchema.getSchema()
-    .then(schema => {
-        const server = new ApolloServer({
-            schema: schema,
-        });
+MATCH (f:Farm)-[:holds_subscription]->(s:Subscription {type: $subscriptionType})
+USING INDEX s:Subscription(type)
+WITH f 
+MATCH (f)-[:has_device]->(d:Device)-[:has_device_type]->(dt:DeviceType {name: $deviceType})
+USING INDEX dt:DeviceType(name)
+USING INDEX d:Device(hardware_version)  
+WHERE d.hardware_version > $hardwareVersion
+OPTIONAL MATCH (d)-[:has_component]->(component:Component)-[:has_sub_component*1..9]->(subComponent:Component)
+WHERE d.serviced_at < date($serviceDate) OR component.serviced_at < date($serviceDate) OR subComponent.serviced_at < date($serviceDate)
+RETURN d AS devices,component AS components, subComponent AS subComponents;
 
-        return startStandaloneServer(server, {
-            context: ({ req }) => ({ req }),
-            listen: { port: 4000 },
-        });
-    })
-    .then(({ url }) => {
-      console.log(`🚀 Server ready at ${url}`);
-    })
-    .catch(error => {
-        console.error('Error starting the server:', error);
-    });
 
+
+type Query {
+findBusinessWithCustomEndpointParameters(farmName: String): Farm
+      @cypher(
+        statement: """
+        match(f:Farm { name: $farmName }) return f
+        """
+      )
+  }
+
+
+
+  	  findUnservicedDevicesOrComponentsOrSubComponents(): [UnServiceDeviceOrComponentOrSubComponent!]!
+      @cypher(statement: """
+MATCH (f:Farm)-[:holds_subscription]->(s:DeLavalSubscription {type: "DeLaval Alerts"})
+USING INDEX s:DeLavalSubscription(type)
+WITH f 
+MATCH (f)-[:has_device]->(d:Device)-[:has_device_type]->(dt:DeviceType {name: "VMS™ V300"})
+USING INDEX dt:DeviceType(name)
+USING INDEX d:Device(hardware_version)  
+WHERE d.hardware_version > "2.1"
+OPTIONAL MATCH (d)-[:has_component]->(component:Component)-[:has_sub_component*1..9]->(subComponent:Component)
+WHERE d.serviced_at < date("2017-01-20") OR component.serviced_at < date("2017-01-20") OR subComponent.serviced_at < date("2017-01-20")
+RETURN {device_serial_number:d.serial_number, component_serial_number:component.serial_number, subcomponent_serial_number:subComponent.serial_number } as result limit 20
+        """, columnName: "result"
+      )

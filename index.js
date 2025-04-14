@@ -18,27 +18,9 @@ type Query {
       @cypher(
         statement: """
         match(f:Farm { name: $farmName }) return f
-        """,
-        columnName: "f"
-      )
+        """,columnName: "f")
 
-findUnservicedDevicesOrComponents(hardwareVersion: Float,subscriptionType: String,deviceType: String,serviceDate: Date): [Device!]!
-      @cypher(statement: """
-MATCH (f:Farm)-[:holds_subscription]->(s:DeLavalSubscription {type: $subscriptionType})
-USING INDEX s:DeLavalSubscription(type)
-WITH f 
-MATCH (f)-[:has_device]->(d:Device)-[:has_device_type]->(dt:DeviceType {name: $deviceType})
-USING INDEX dt:DeviceType(name)
-USING INDEX d:Device(hardware_version)  
-WHERE d.hardware_version > $hardwareVersion
-OPTIONAL MATCH (d)-[:has_component]->(component:Component)-[:has_sub_component*1..9]->(subComponent:Component)
-WHERE d.serviced_at < date($serviceDate) OR component.serviced_at < date($serviceDate) OR subComponent.serviced_at < date($serviceDate)
-RETURN d AS devices
-        """,
-        columnName: "devices"
-      )
-
-	  devicesWithComponents(hardwareVersion: Float,subscriptionType: String,deviceType: String,serviceDate: Date): [DeviceResult!]!
+findUnservicedDevicesOrComponentsOrSubComponents(hardwareVersion: Float!,subscriptionType: String!,deviceType: String!,serviceDate: Date!): [UnServiceDeviceOrComponentOrSubComponent!]!
       @cypher(statement: """
 MATCH (f:Farm)-[:holds_subscription]->(s:DeLavalSubscription {type: $subscriptionType})
 USING INDEX s:DeLavalSubscription(type)
@@ -50,11 +32,26 @@ WHERE d.hardware_version > $hardwareVersion
 OPTIONAL MATCH (d)-[:has_component]->(component:Component)-[:has_sub_component*1..9]->(subComponent:Component)
 WHERE d.serviced_at < date($serviceDate) OR component.serviced_at < date($serviceDate) OR subComponent.serviced_at < date($serviceDate)
 RETURN {device_serial_number:d.serial_number, component_serial_number:component.serial_number, subcomponent_serial_number:subComponent.serial_number } as result
-        """, columnName: "result"
-      )
+        """, columnName: "result")
+
+
+		findUnservicedDevicesOrComponentsOrSubComponentsWithHardCodedParameters: [UnServiceDeviceOrComponentOrSubComponent!]!
+      @cypher(statement: """
+MATCH (f:Farm)-[:holds_subscription]->(s:DeLavalSubscription {type: "DeLaval Alerts"})
+USING INDEX s:DeLavalSubscription(type)
+WITH f 
+MATCH (f)-[:has_device]->(d:Device)-[:has_device_type]->(dt:DeviceType {name: "VMS™ V300"})
+USING INDEX dt:DeviceType(name)
+USING INDEX d:Device(hardware_version)  
+WHERE d.hardware_version > 2.1
+OPTIONAL MATCH (d)-[:has_component]->(component:Component)-[:has_sub_component*1..9]->(subComponent:Component)
+WHERE d.serviced_at < date("2017-01-20") OR component.serviced_at < date("2017-01-20") OR subComponent.serviced_at < date("2017-01-20")
+RETURN {device_serial_number:d.serial_number, component_serial_number:component.serial_number, subcomponent_serial_number:subComponent.serial_number } as result
+        """, columnName: "result")
+
   }
 
-type DeviceResult @node{
+type UnServiceDeviceOrComponentOrSubComponent @node{
   device_serial_number: BigInt
   component_serial_number: BigInt
   subcomponent_serial_number: BigInt

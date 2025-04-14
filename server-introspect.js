@@ -5,6 +5,7 @@ import { toGraphQLTypeDefs } from "@neo4j/introspector";
 import neo4j from "neo4j-driver";
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import { readFileSync } from 'fs';
 
 dotenv.config();
 const NEO4J_HOST = process.env.NEO4J_HOST;
